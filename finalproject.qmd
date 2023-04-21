@@ -1,0 +1,11 @@
+---
+title: "Final Project"
+author: "Majorz"
+format: pdf
+---
+
+```{r read-data, message = F, warning = F}
+library(tidyverse)
+library(tidymodels)
+spotify <- read_csv("data/tf_mini.csv")
+```
