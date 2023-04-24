@@ -11,15 +11,6 @@ library(glmnet)
 spotify <- read_csv("data/tf_mini.csv")
 ```
 
-```{r linear-model, message = F, warning = F}
-lm_all_popularity <- lm(us_popularity_estimate ~ duration + release_year + acousticness + 
-     beat_strength + bounciness + danceability + dyn_range_mean + energy + 
-     flatness + instrumentalness + key + liveness + loudness + mechanism + 
-     mode + organism + speechiness + tempo + time_signature + valence,
-     data = spotify)
-summary(lm_all_popularity)
-```
-
 ```{r logistic-model, message = F, warning = F}
 spotify_mode <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
@@ -27,22 +18,23 @@ spotify_mode <- spotify |>
 
 spotify_mode |> drop_na(new_mode)
 
-lm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year + acousticness + 
+glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year + acousticness + 
      beat_strength + bounciness + danceability + dyn_range_mean + energy + 
      flatness + instrumentalness + key + liveness + loudness + mechanism + 
        organism + speechiness + tempo + time_signature + valence,
      data = spotify_mode,
      family = "binomial")
-summary(lm_all_mode)
+summary(glm_all_mode)
 ```
 
 ```{r lasso, message = F, warning = F, include = FALSE}
-y <- spotify$us_popularity_estimate
-x <- model.matrix(us_popularity_estimate ~ duration + release_year + acousticness + 
-     beat_strength + bounciness + danceability + dyn_range_mean + energy + 
-     flatness + instrumentalness + key + liveness + loudness + mechanism + 
-     mode + organism + speechiness + tempo + time_signature + valence,
-                  data = spotify)
+y <- spotify_mode$new_mode
+x <- model.matrix(new_mode ~ us_popularity_estimate + duration + release_year + 
+                acousticness + beat_strength + bounciness + danceability + 
+                  dyn_range_mean + energy + flatness + instrumentalness + key + 
+                  liveness + loudness + mechanism + organism + speechiness + 
+                  tempo + time_signature + valence,
+                  data = spotify_mode, family = "binomial")
 lasso_sc <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
@@ -52,3 +44,12 @@ lasso_final$beta
 ```{r lasso-plot, message = F, warning = F}
 plot(lasso_sc)
 ```
+
+## Introduction and Data
+
+## Methodology
+
+## Results
+
+## Discussion
+
