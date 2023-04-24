@@ -12,12 +12,28 @@ spotify <- read_csv("data/tf_mini.csv")
 ```
 
 ```{r linear-model, message = F, warning = F}
-lm_all <- lm(us_popularity_estimate ~ duration + release_year + acousticness + 
+lm_all_popularity <- lm(us_popularity_estimate ~ duration + release_year + acousticness + 
      beat_strength + bounciness + danceability + dyn_range_mean + energy + 
      flatness + instrumentalness + key + liveness + loudness + mechanism + 
      mode + organism + speechiness + tempo + time_signature + valence,
      data = spotify)
-summary(lm_all)
+summary(lm_all_popularity)
+```
+
+```{r logistic-model, message = F, warning = F}
+spotify_mode <- spotify |>
+  mutate(new_mode = if_else(mode == "major", 1, 0), 
+         new_mode = as.numeric(new_mode))
+
+spotify_mode |> drop_na(new_mode)
+
+lm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year + acousticness + 
+     beat_strength + bounciness + danceability + dyn_range_mean + energy + 
+     flatness + instrumentalness + key + liveness + loudness + mechanism + 
+       organism + speechiness + tempo + time_signature + valence,
+     data = spotify_mode,
+     family = "binomial")
+summary(lm_all_mode)
 ```
 
 ```{r lasso, message = F, warning = F, include = FALSE}
