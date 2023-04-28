@@ -123,6 +123,42 @@ figure out to make this smaller or how to get charts to show^
 
 There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for ______ because there is no major pattern in empirical logits. Linearity was not met for ____ because ____.
 
+```{r prediction-probability, message = F, warning = F, eval = F}
+glm_aug <- glm_aug |>
+  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
+         pred_mode = ifelse(prob > 0.5, "Major", "Minor")) |>
+  select(.fitted, prob, pred_mode, new_mode)
+
+table(glm_aug$pred_mode, glm_aug$new_mode)
+```
+
+Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
+
+Prevalence:
+
+Sensitivity:
+
+Specificity:
+
+Positive predicted value:
+
+Negative predicted value:
+
+This implies that ___
+
+```{r roc-curve, message = F, warning = F, eval = F}
+glm_aug |>
+  roc_auc(truth = as.factor(new_mode),
+          prob,
+          event_level = "second") |>
+  autoplot()
+
+glm_aug |>
+  roc_auc(truth = as.factor(new_mode),
+          prob,
+          event_level = "second")
+```
+
 ## Results
 
 HOW to pick which predictors are the best???
