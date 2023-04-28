@@ -9,6 +9,7 @@ library(tidyverse)
 library(tidymodels)
 library(glmnet)
 library(Stat2Data)
+library(ggcorrplot)
 spotify <- read_csv("data/tf_mini.csv")
 ```
 
@@ -27,6 +28,49 @@ glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year 
      family = "binomial")
 summary(glm_all_mode)
 ```
+
+As demonstrated by the regression model above, there are many predictors that are statistically signficiant (significance level of 0.05). However, it is critical to improve this baseline model in the following ways:
+
+1)  Confrirm that there are not instances of multicollinearity (or model overfitting)
+2)  Ensure that the variables included are meaningfully contributing to the model
+3)  Optimize the model and determine if interacitons or changes are appropriate
+
+```{r corplotvars, message = F, warning = F}
+spotify_cor <- spotify_mode|>
+  select(us_popularity_estimate, duration, release_year, acousticness, 
+     beat_strength, bounciness, danceability, dyn_range_mean, energy, 
+     flatness,instrumentalness, key, liveness, loudness, mechanism, 
+       organism, speechiness, tempo, time_signature, valence)
+
+cor_spotify <- cor(spotify_cor)
+
+ggcorrplot(cor_spotify)+
+  labs(title = "Corrleation of Spotify Data Variables")
+```
+
+#Source http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2#:\~:text=The%20easiest%20way%20to%20visualize,ggcorr()%20in%20ggally%20package
+
+Examining the correlation plot above, it appears there are variables that have a high positive correlation with each other. This causes great concern with multicollinearity as the model may be overfitted. For example,
+
+-   beat_strength is highly correlated with
+
+    -   dyn_range_mean
+
+    -   danceability
+
+    -   bounciness
+
+Therefore, to prevent overfitting in our regression model, the following variables should be removed:
+
+1\) beat_strength
+
+2\) dyn_range_mean
+
+3\) danceability
+
+4\) bounciness
+
+In addition to removing variables due to extremely high correlations, it is also important to select variables that make an impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
 
 ```{r lasso, message = F, warning = F}
 y <- spotify_mode$new_mode
@@ -47,13 +91,15 @@ LASSO kept all of the predictors.
 ```{r lasso-plot, message = F, warning = F}
 plot(lasso_sc)
 ```
-not sure if this is needed or not^
+
+not sure if this is needed or not\^
 
 ## Introduction and Data
 
 ## Methodology
 
 Evaluating assumptions:
+
 ```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
 glm_aug <- augment(glm_all_mode) 
 par(mfrow=c(4,5))
@@ -119,9 +165,9 @@ emplogitplot1(new_mode ~ valence,
              ngroups = 20)
 ```
 
-figure out to make this smaller or how to get charts to show^
+figure out to make this smaller or how to get charts to show\^
 
-There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for ______ because there is no major pattern in empirical logits. Linearity was not met for ____ because ____.
+There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for \_\_\_\_\_\_ because there is no major pattern in empirical logits. Linearity was not met for \_\_\_\_ because \_\_\_\_.
 
 ```{r prediction-probability, message = F, warning = F, eval = F}
 glm_aug <- glm_aug |>
@@ -144,7 +190,7 @@ Positive predicted value:
 
 Negative predicted value:
 
-This implies that ___
+This implies that \_\_\_
 
 ```{r roc-curve, message = F, warning = F, eval = F}
 glm_aug |>
@@ -167,6 +213,4 @@ One predictor that makes sense to interpret is key because key has changes in wh
 
 to be continued
 
-
 ## Discussion
-
