@@ -13,6 +13,28 @@ library(ggcorrplot)
 spotify <- read_csv("data/tf_mini.csv")
 ```
 
+## Introduction and Data
+
+With recent features on music apps such as Spotify Wrapped gaining massive popularity, understanding users' music taste for personalized recommendations and music trend analysis have become a critical challenge for streaming companies. To categorize and analyze the countless songs on these platforms, each are dissected into various musical elements ranging from duration and tempo to loudness and danceability. Using a real database of song tracks compiled and released by Spotify for data engineering purposes, we wanted to see whether common trends could be observed between different musical elements. Modes of songs, specifically, were of our interest since they determine the mood of the music — songs in major modes sound more bright and uplifting while those in minor modes are more calm and even sadder. We wanted to explore if musical aspects such as bounciness or tempo would be correlated to the song's mode in some way, with some of our example hypotheses being that minor songs would be slower and/or less danceable but more acoustic than major songs. Hence, we set the following:
+
+Research question: How do different musical elements affect whether a song is in major or minor mode?
+
+This data was collected from the Spotify for Developers website, as the data set was published to be used as part of an open data science challenge. With no null values and well-categorized variables, our data was already cleaned and ready to be used for a complete case analysis. Minor data cleaning processes that we conducted were deleting irrelevant variables such as acoustic vectors and adding a new variable "new_mode" to express major and minor modes numerically as 1 and 0.
+
+Data source: https://www.aicrowd.com/challenges/spotify-sequential-skip-prediction-challenge/dataset_files (need to create an account and log in to access the dataset)
+
+Some of our key variables included:
+
+- duration: length of the song in seconds
+- release_year: year of song released
+- key: song key starting from C major (0) to B minor (11)
+- mode: song mode (major or minor)
+- new_mode: song mode numerized (1 = major, 0 = minor)
+- tempo: speed of song in beats per minute (bpm)
+- time signature: number of quarter notes in each measure
+
+To get a gist of what our data was presenting, we fitted an initial logistic model using all variables as predictors.
+
 ```{r logistic-model, message = F, warning = F}
 spotify_mode <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
@@ -53,7 +75,7 @@ Examining the correlation plot above, it appears there are variables that have a
 -   beat_strength is highly correlated with
 
     -   dyn_range_mean
-
+    
     -   danceability
 
     -   bounciness
@@ -90,8 +112,6 @@ plot(lasso_sc)
 ```
 
 not sure if this is needed or not\^
-
-## Introduction and Data
 
 ## Methodology
 
