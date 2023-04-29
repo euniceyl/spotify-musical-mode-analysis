@@ -5,6 +5,7 @@ format: pdf
 ---
 
 ```{r read-data, message = F, warning = F}
+install.packages("ggcorrplot")
 library(tidyverse)
 library(tidymodels)
 library(glmnet)
@@ -95,10 +96,9 @@ In addition to removing variables due to extremely high correlations, it is also
 ```{r lasso, message = F, warning = F}
 y <- spotify_mode$new_mode
 x <- model.matrix(new_mode ~ us_popularity_estimate + duration + release_year + 
-                acousticness + beat_strength + bounciness + danceability + 
-                  dyn_range_mean + energy + flatness + instrumentalness + key + 
-                  liveness + loudness + mechanism + organism + speechiness + 
-                  tempo + time_signature + valence,
+                  acousticness + danceability + energy + flatness + 
+                  instrumentalness + key + liveness + loudness + mechanism + 
+                  organism + speechiness + tempo + time_signature + valence,
                   data = spotify_mode, family = "binomial")
 lasso_sc <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- lasso_sc$lambda.min
@@ -132,16 +132,7 @@ emplogitplot1(new_mode ~ release_year,
 emplogitplot1(new_mode ~ acousticness,
              data = spotify_mode,
              ngroups = 20)
-emplogitplot1(new_mode ~ beat_strength,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ bounciness,
-             data = spotify_mode,
-             ngroups = 20)
 emplogitplot1(new_mode ~ danceability,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ dyn_range_mean,
              data = spotify_mode,
              ngroups = 20)
 emplogitplot1(new_mode ~ energy,
@@ -182,9 +173,7 @@ emplogitplot1(new_mode ~ valence,
              ngroups = 20)
 ```
 
-figure out to make this smaller or how to get charts to show\^
-
-There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for \_\_\_\_\_\_ because there is no major pattern in empirical logits. Linearity was not met for \_\_\_\_ because \_\_\_\_.
+There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
 ```{r prediction-probability, message = F, warning = F, eval = F}
 glm_aug <- glm_aug |>
@@ -196,15 +185,15 @@ table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
 Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
 
-Prevalence:
+Prevalence: 
 
-Sensitivity:
+Sensitivity: 29968/(29968 + 2587) = 0.921
 
-Specificity:
+Specificity: 3279/(3279 + 14870) = 0.181
 
-Positive predicted value:
+Positive predicted value: 29968/(29968 + 14870) = 0.669
 
-Negative predicted value:
+Negative predicted value: 3279/(3279 + 2587) = 0.559
 
 This implies that \_\_\_
 
@@ -222,8 +211,6 @@ glm_aug |>
 ```
 
 ## Results
-
-HOW to pick which predictors are the best???
 
 One predictor that makes sense to interpret is key because key has changes in whole numbers while many of the other predictors are within tenths of differences of each other amongst observations. Holding all other predictors constant, for every one (unit) increase in key, we expect the log-odds of a song being major rather than minor to increase by approximately 0.0931. So, when holding all other predictors constant, we for every one number increase in key (find what this means), the odds of the patient getting any infection is predicted to be multiplied by $e^{0.0931}$ = 1.0976. For an example, while holding all other predictors constant, the relative odds of a song being major rather than minor comparing a song with key 10 vs a song with key 2 is $e^{8*0.0931}$ is 2.106.
 
