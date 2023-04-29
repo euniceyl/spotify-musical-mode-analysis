@@ -28,12 +28,11 @@ glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year 
      family = "binomial")
 summary(glm_all_mode)
 ```
+As demonstrated by the regression model above, there are many predictors that are statistically significant, using the significance level of $\alpha=0.5$. However, it is critical to improve this baseline model in the following ways:
 
-As demonstrated by the regression model above, there are many predictors that are statistically signficiant (significance level of 0.05). However, it is critical to improve this baseline model in the following ways:
-
-1)  Confrirm that there are not instances of multicollinearity (or model overfitting)
+1)  Confirm that there are not instances of multicollinearity (or model overfitting)
 2)  Ensure that the variables included are meaningfully contributing to the model
-3)  Optimize the model and determine if interacitons or changes are appropriate
+3)  Optimize the model and determine if interactions or changes are appropriate
 
 ```{r corplotvars, message = F, warning = F}
 spotify_cor <- spotify_mode|>
@@ -47,8 +46,7 @@ cor_spotify <- cor(spotify_cor)
 ggcorrplot(cor_spotify)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
-
-#Source http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2#:\~:text=The%20easiest%20way%20to%20visualize,ggcorr()%20in%20ggally%20package
+Source used: http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2#:\~:text=The%20easiest%20way%20to%20visualize,ggcorr()%20in%20ggally%20package
 
 Examining the correlation plot above, it appears there are variables that have a high positive correlation with each other. This causes great concern with multicollinearity as the model may be overfitted. For example,
 
@@ -85,7 +83,6 @@ best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
-
 LASSO kept all of the predictors.
 
 ```{r lasso-plot, message = F, warning = F}
@@ -177,7 +174,6 @@ glm_aug <- glm_aug |>
 
 table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
-
 Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
 
 Prevalence:
