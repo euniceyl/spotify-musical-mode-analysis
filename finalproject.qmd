@@ -11,6 +11,7 @@ library(tidymodels)
 library(glmnet)
 library(Stat2Data)
 library(ggcorrplot)
+library(ggfortify)
 spotify <- read_csv("data/tf_mini.csv")
 ```
 
@@ -185,7 +186,7 @@ table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
 Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
 
-Prevalence: 
+Prevalence: 29968/(14870+29968+3279+2587) = 0.591
 
 Sensitivity: 29968/(29968 + 2587) = 0.921
 
