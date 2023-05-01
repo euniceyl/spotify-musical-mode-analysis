@@ -12,6 +12,7 @@ library(glmnet)
 library(Stat2Data)
 library(ggcorrplot)
 library(ggfortify)
+library
 spotify <- read_csv("data/tf_mini.csv")
 ```
 
@@ -119,7 +120,7 @@ not sure if this is needed or not\^
 Evaluating assumptions:
 
 ```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
-glm_aug <- augment(glm_all_mode) 
+glm_aug <- augment(glm_all_mode)
 par(mfrow=c(4,5))
 emplogitplot1(new_mode ~ us_popularity_estimate,
              data = spotify_mode,
@@ -176,6 +177,8 @@ emplogitplot1(new_mode ~ valence,
 
 There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
+These are potential limitations of these variables that do not meet the linarity assumption. However, since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model. We do understand that there may be some linearity concerns when it comes to the overall view of our model.
+
 ```{r prediction-probability, message = F, warning = F, eval = F}
 glm_aug <- glm_aug |>
   mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
@@ -186,7 +189,7 @@ table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
 Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
 
-Prevalence: 29968/(14870+29968+3279+2587) = 0.591
+Prevalence: 
 
 Sensitivity: 29968/(29968 + 2587) = 0.921
 
@@ -198,9 +201,9 @@ Negative predicted value: 3279/(3279 + 2587) = 0.559
 
 This implies that \_\_\_
 
-```{r roc-curve, message = F, warning = F, eval = F}
+```{r roc-curve, message = F, warning = F, eval = FALSE}
 glm_aug |>
-  roc_auc(truth = as.factor(new_mode),
+  roc_curve(truth = as.factor(new_mode),
           prob,
           event_level = "second") |>
   autoplot()
