@@ -17,7 +17,7 @@ spotify <- read_csv("data/tf_mini.csv")
 
 ## Introduction and Data
 
-With recent features on music apps such as Spotify Wrapped gaining massive popularity, understanding users' music taste for personalized recommendations and music trend analysis have become a critical challenge for streaming companies. To categorize and analyze the countless songs on these platforms, each are dissected into various musical elements ranging from duration and tempo to loudness and danceability. Using a real database of song tracks compiled and released by Spotify for data engineering purposes, we wanted to see whether common trends could be observed between different musical elements. Modes of songs, specifically, were of our interest since they determine the mood of the music — songs in major modes sound more bright and uplifting while those in minor modes are more calm and even sadder. We wanted to explore if musical aspects such as bounciness or tempo would be correlated to the song's mode in some way, with some of our example hypotheses being that minor songs would be slower and/or less danceable but more acoustic than major songs. Hence, we set the following:
+With recent features on music apps such as Spotify Wrapped gaining massive popularity, understanding users' music taste for personalized recommendations and music trend analysis have become a critical challenge for streaming companies. To categorize and analyze the countless songs on these platforms, each are dissected into various musical elements ranging from duration and tempo to loudness and danceability. Using a real database of song tracks compiled and released by Spotify for data engineering purposes, we wanted to see whether common trends could be observed between different musical elements. Modes of songs, specifically, were of our interest since they determine the mood of the music --- songs in major modes sound more bright and uplifting while those in minor modes are more calm and even sadder. We wanted to explore if musical aspects such as bounciness or tempo would be correlated to the song's mode in some way, with some of our example hypotheses being that minor songs would be slower and/or less danceable but more acoustic than major songs. Hence, we set the following:
 
 Research question: How do different musical elements affect whether a song is in major or minor mode?
 
@@ -27,13 +27,13 @@ Data source: https://www.aicrowd.com/challenges/spotify-sequential-skip-predicti
 
 Some of our key variables included:
 
-- duration: length of the song in seconds
-- release_year: year of song released
-- key: song key starting from C major (0) to B minor (11)
-- mode: song mode (major or minor)
-- new_mode: song mode numerized (1 = major, 0 = minor)
-- tempo: speed of song in beats per minute (bpm)
-- time signature: number of quarter notes in each measure
+-   duration: length of the song in seconds
+-   release_year: year of song released
+-   key: song key starting from C major (0) to B minor (11)
+-   mode: song mode (major or minor)
+-   new_mode: song mode numerized (1 = major, 0 = minor)
+-   tempo: speed of song in beats per minute (bpm)
+-   time signature: number of quarter notes in each measure
 
 To get a gist of what our data was presenting, we fitted an initial logistic model using all variables as predictors.
 
@@ -52,6 +52,7 @@ glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year 
      family = "binomial")
 summary(glm_all_mode)
 ```
+
 As demonstrated by the regression model above, there are many predictors that are statistically significant, using the significance level of $\alpha=0.5$. However, it is critical to improve this baseline model in the following ways:
 
 1)  Confirm that there are not instances of multicollinearity (or model overfitting)
@@ -70,6 +71,7 @@ cor_spotify <- cor(spotify_cor)
 ggcorrplot(cor_spotify)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
+
 Source used: http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2#:\~:text=The%20easiest%20way%20to%20visualize,ggcorr()%20in%20ggally%20package
 
 Examining the correlation plot above, it appears there are variables that have a high positive correlation with each other. This causes great concern with multicollinearity as the model may be overfitted. For example,
@@ -77,7 +79,7 @@ Examining the correlation plot above, it appears there are variables that have a
 -   beat_strength is highly correlated with
 
     -   dyn_range_mean
-    
+
     -   danceability
 
     -   bounciness
@@ -88,11 +90,42 @@ Therefore, to prevent overfitting in our regression model, the following variabl
 
 2\) dyn_range_mean
 
-3\) danceability
+3\) bounciness
 
-4\) bounciness
+Note: We decided to leave in danceability because we felt that this would be be the best variable to include considering the four other variables.
 
-In addition to removing variables due to extremely high correlations, it is also important to select variables that make an impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
+The new regression model and corresponding correlation plot can be shown below:
+
+```{r newcorplotvars, message = F, warning = F}
+spotify_cor_new <- spotify_mode|>
+  select(us_popularity_estimate, duration, release_year, acousticness, 
+     beat_strength, danceability, energy, 
+     flatness,instrumentalness, key, liveness, loudness, mechanism, 
+       organism, speechiness, tempo, time_signature, valence)
+
+cor_spotify_new <- cor(spotify_cor_new)
+
+ggcorrplot(cor_spotify_new)+
+  labs(title = "Corrleation of Spotify Data Variables")
+```
+
+The new model:
+
+```{r newlogistic-model, message = F, warning = F}
+
+glm_all_mode_new <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
+                          acousticness  + danceability  + energy + flatness + 
+                          instrumentalness + key + liveness + loudness + mechanism + 
+                          organism + speechiness + tempo + time_signature + valence,
+     data = spotify_mode,
+     family = "binomial")
+summary(glm_all_mode_new)
+
+```
+
+Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (positive to negative)!
+
+In addition to removing three variables due to extremely high correlations, it is also important to select variables that make an impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
 
 ```{r lasso, message = F, warning = F}
 y <- spotify_mode$new_mode
@@ -106,6 +139,7 @@ best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
+
 LASSO kept all of the predictors.
 
 ```{r lasso-plot, message = F, warning = F}
@@ -186,9 +220,10 @@ glm_aug <- glm_aug |>
 
 table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
+
 Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
 
-Prevalence: 
+Prevalence:
 
 Sensitivity: 29968/(29968 + 2587) = 0.921
 
