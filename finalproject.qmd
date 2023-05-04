@@ -56,7 +56,7 @@ As demonstrated by the regression model above, there are many predictors that ar
 
 1)  Confirm that there are not instances of multicollinearity (or model overfitting)
 2)  Ensure that the variables included are meaningfully contributing to the model
-3)  Optimize the model and determine if interactions or changes are appropriate
+3)  Optimize the model and determine if tranformations or changes are appropriate
 
 ```{r corplotvars, message = F, warning = F}
 spotify_cor <- spotify_mode|>
@@ -117,7 +117,6 @@ It is important to acknowledge that further correlations exist, but they are not
 The new model:
 
 ```{r newlogistic-model, message = F, warning = F}
-
 glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
                           acousticness  + danceability  + energy + flatness + 
                           instrumentalness + key + liveness + loudness + mechanism + 
@@ -145,7 +144,7 @@ lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
 
-LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale.
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model
 
 ```{r lasso-plot, message = F, warning = F}
 plot(lasso_sc)
@@ -158,6 +157,7 @@ not sure if this is needed or not\^
 Evaluating assumptions:
 
 ```{r linearity-issue, message = F, warning = F, echo = FALSE, eval = FALSE}
+
 spotify_test <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
          new_mode = as.numeric(new_mode),
@@ -170,9 +170,10 @@ emplogitplot1(new_mode ~ (speechiness),
 
 There were fewer data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
-These are potential limitations of these variables that do not meet the linarity assumption. However, **since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model.** We do understand that there may be some linearity concerns when it comes to the overall view of our model.
+These are potential limitations of these variables that do not meet the linearity assumption. However, **since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model.** We do understand that there may be some linearity concerns when it comes to the overall view of our model.
 
 ```{r prediction-probability, message = F, warning = F, eval = F}
+
 glm_aug <- glm_aug |>
   mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
          pred_mode = ifelse(prob > 0.5, "Major", "Minor")) |>
@@ -218,8 +219,12 @@ to be continued
 
 In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, after attempts to transform this variable, it was not effective because of underlying issues with the variable. Additionally, there are challenges with some of the variables in terms of their scaling. For example, the variable us_popularity_estimate mostly takes on values from 97-99. This is the case with many variables within the data. Therefore, our model does have downfalls, but it does have an interpretive aspect that is desirable. For example, there are not any sophisticated transformations on the predictors. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. Although this may not be the "best" and most statistically complete model, it is effective in providing meaningful results while simultaneously maintaining an applicative aspect.
 
+## Appendix
+
+Following are the empirical logit plots as referenced in the methodology section above.
+
 ```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
-glm_aug <- augment(glm_all_mode)
+
 
 emplogitplot1(new_mode ~ us_popularity_estimate,
              data = spotify_mode,
