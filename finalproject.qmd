@@ -164,7 +164,7 @@ Negative predicted value: 3279/(3279 + 2587) = 0.559
 
 This implies that \_\_\_
 
-```{r roc-curve, message = F, warning = F, echo = FALSE}
+```{r roc-curve, message = F, warning = F, echo = FALSE, fig.width=3, fig.height=3}
 glm_aug |>
   roc_curve(truth = as.factor(new_mode),
           prob,
