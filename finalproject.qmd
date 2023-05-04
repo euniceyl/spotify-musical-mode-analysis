@@ -27,7 +27,7 @@ Data source: https://www.aicrowd.com/challenges/spotify-sequential-skip-predicti
 Some of our key variables included:
 
 -   duration: length of the song in seconds
--   release_year: year of song released
+-   release_year: year of song released (1950-2018)
 -   key: song key starting from C major (0) to B minor (11)
 -   mode: song mode (major or minor)
 -   new_mode: song mode numerized (1 = major, 0 = minor)
@@ -102,9 +102,8 @@ The new regression model and corresponding correlation plot can be shown below:
 ```{r newcorplotvars, message = F, warning = F}
 spotify_cor_new <- spotify_mode|>
   select(us_popularity_estimate, duration, release_year, acousticness, 
-     beat_strength, danceability, energy, 
-     flatness,instrumentalness, key, liveness, loudness, mechanism, 
-       speechiness, tempo, time_signature, valence)
+     beat_strength, danceability, energy, flatness,instrumentalness, key, 
+     liveness, loudness, mechanism, speechiness, tempo, time_signature, valence)
 
 cor_spotify_new <- cor(spotify_cor_new)
 
@@ -124,7 +123,6 @@ glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
      data = spotify_mode,
      family = "binomial")
 summary(glm_final)
-
 ```
 
 Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (eg: danceability changed from a positive to negative contribution)! Additionally, the variable flatness is no longer significant in the model (at at 0.05 significance level).
@@ -136,13 +134,12 @@ y <- spotify_mode$new_mode
 x <- model.matrix(new_mode ~ us_popularity_estimate + duration + release_year + 
                   acousticness + danceability + energy + flatness + 
                   instrumentalness + key + liveness + loudness + mechanism + 
-                   speechiness + tempo + time_signature + valence,
+                  speechiness + tempo + time_signature + valence,
                   data = spotify_mode, family = "binomial")
 lasso_sc <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
-
 ```
 
 LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model
@@ -216,6 +213,8 @@ glm_aug |>
           event_level = "second")
 ```
 
+The value of the area under the curve of the ROC curve is 0.64. Although it is greater than 0.5, which would imply that it would be just as effective to guess the major/minor scale, it is not as high as expected. As discussed below, there may be several reasons that this occurs in our model.
+
 ## Results
 
 One predictor that is most aligned with our outcome variable (major/minor scale) is key because key has changes in whole numbers while many of the other predictors are within tenths of differences of each other amongst observations. Holding all other predictors constant, for every one (unit) increase in key, we expect the log-odds of a song being major rather than minor to increase by approximately 0.0931. So, when holding all other predictors constant, we for every one number increase in key (find what this means), the odds of the patient getting any infection is predicted to be multiplied by $e^{0.0931}$ = 1.0976. For an example, while holding all other predictors constant, the relative odds of a song being major rather than minor comparing a song with key 10 vs a song with key 2 is $e^{8*0.0931}$ is 2.106.
@@ -228,7 +227,9 @@ In conclusion, this model has benefits and shortfalls. Primarily, it is clear th
 
 Additionally, there are challenges with some of the variables in terms of their scaling and units. For example, the variable us_popularity_estimate mostly takes on values from 97-99. Each variable is different, but they generally have unique scaling.
 
-In all, our model does have downfalls, but it does have an interpretive aspect that is desirable. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. The model, even though there are issues, is not extremely sophisticated and complex for a general audience. Even though the AUC value is not as strong as desirable, it is still an informative model. Overall, our model provides insightful and meaningful results while simultaneously maintaining a real-world aspect.
+In all, our model does have downfalls, but it does have an interpretive aspect that is desirable. This allows the results to be more "reasonable" in terms of predicting if a song is in a major/minor key. The model, even though there are issues, is not extremely sophisticated or complex for a general audience. Even though the AUC value is not as strong as desirable, it is still an informative model. Generally, it provides insightful and meaningful results while simultaneously maintaining a real-world aspect.
+
+In the future, we may want to explore other data sources and outcomes to understand the media market better. For example we could compare this data from Spotify with songs played on radio stations from the 1950's to current day. Would the popularity of songs on Spotify correspond with songs frequently played on the radio? There are many questions outside of our project scope that could be answered with further research and models.
 
 ## Appendix
 
