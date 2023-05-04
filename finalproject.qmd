@@ -159,7 +159,7 @@ not sure if this is needed or not\^
 
 Evaluating assumptions:
 
-```{r}
+```{r linearity-issue, message = F, warning = F, echo = FALSE, eval = FALSE}
 spotify_test <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
          new_mode = as.numeric(new_mode),
@@ -170,9 +170,9 @@ emplogitplot1(new_mode ~ (speechiness),
              ngroups = 20)
 ```
 
-There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
+There were fewer data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
-These are potential limitations of these variables that do not meet the linarity assumption. However, since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model. We do understand that there may be some linearity concerns when it comes to the overall view of our model.
+These are potential limitations of these variables that do not meet the linarity assumption. However, **since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model.** We do understand that there may be some linearity concerns when it comes to the overall view of our model.
 
 ```{r prediction-probability, message = F, warning = F, eval = F}
 glm_aug <- glm_aug |>
@@ -212,13 +212,13 @@ glm_aug |>
 
 ## Results
 
-One predictor that makes sense to interpret is key because key has changes in whole numbers while many of the other predictors are within tenths of differences of each other amongst observations. Holding all other predictors constant, for every one (unit) increase in key, we expect the log-odds of a song being major rather than minor to increase by approximately 0.0931. So, when holding all other predictors constant, we for every one number increase in key (find what this means), the odds of the patient getting any infection is predicted to be multiplied by $e^{0.0931}$ = 1.0976. For an example, while holding all other predictors constant, the relative odds of a song being major rather than minor comparing a song with key 10 vs a song with key 2 is $e^{8*0.0931}$ is 2.106.
+One predictor that is most aligned with our outcome variable (major/minor scale) is key because key has changes in whole numbers while many of the other predictors are within tenths of differences of each other amongst observations. Holding all other predictors constant, for every one (unit) increase in key, we expect the log-odds of a song being major rather than minor to increase by approximately 0.0931. So, when holding all other predictors constant, we for every one number increase in key (find what this means), the odds of the patient getting any infection is predicted to be multiplied by $e^{0.0931}$ = 1.0976. For an example, while holding all other predictors constant, the relative odds of a song being major rather than minor comparing a song with key 10 vs a song with key 2 is $e^{8*0.0931}$ is 2.106.
 
 to be continued
 
 ## Discussion
 
-In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. Additionally, there are challenges with some of the variables in terms of their scaling. For example, the variable us_popularity_estimate mostly takes on values from 97-99. This is the case with many variables within the data. Therefore, our model does have downfalls, but it does have an interpretive aspect that is desirable. For example, there are not any sophisticated transformations on the predictors. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. Although this may not be the "best" and most statistically complete model, it is effective in providing meaningful results while simultaneously maintaining an applicative aspect.
+In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, after attempts to transform this variable, it was not effective because of underlying issues with the variable. Additionally, there are challenges with some of the variables in terms of their scaling. For example, the variable us_popularity_estimate mostly takes on values from 97-99. This is the case with many variables within the data. Therefore, our model does have downfalls, but it does have an interpretive aspect that is desirable. For example, there are not any sophisticated transformations on the predictors. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. Although this may not be the "best" and most statistically complete model, it is effective in providing meaningful results while simultaneously maintaining an applicative aspect.
 
 ```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
 glm_aug <- augment(glm_all_mode)
