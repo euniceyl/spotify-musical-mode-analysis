@@ -83,6 +83,10 @@ Examining the correlation plot above, it appears there are variables that have a
 
     -   bounciness
 
+-   mechanism is highly correlated with
+
+    -   organism
+
 Therefore, to prevent overfitting in our regression model, the following variables should be removed:
 
 1\) beat_strength
@@ -91,7 +95,9 @@ Therefore, to prevent overfitting in our regression model, the following variabl
 
 3\) bounciness
 
-Note: We decided to leave in danceability because we felt that this would be be the best variable to include considering the four other variables.
+4\) organism
+
+Note: We decided to leave in danceability and mechanism because we felt that these variables are easily understandable from an interpretable standpoint of the model.
 
 The new regression model and corresponding correlation plot can be shown below:
 
@@ -108,6 +114,8 @@ ggcorrplot(cor_spotify_new)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
 
+It is important to acknowledge that further correlations exist, but they are not as extreme and prevalent as prior models. Therefore, we feel that it is appropriate to proceed with the revised model.
+
 The new model:
 
 ```{r newlogistic-model, message = F, warning = F}
@@ -122,9 +130,9 @@ summary(glm_final)
 
 ```
 
-Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (positive to negative)!
+Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (eg: danceability changed from a positive to negative contribution)! Additionally, the variable flatness is no longer significant in the model (at at 0.05 significance level).
 
-In addition to removing three variables due to extremely high correlations, it is also important to select variables that make an impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
+In addition, to removing four variables due to extremely high correlations, we felt it was also important to select variables that have the most impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
 
 ```{r lasso, message = F, warning = F}
 y <- spotify_mode$new_mode
@@ -139,7 +147,7 @@ lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
 
-LASSO kept all of the predictors.
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest.
 
 ```{r lasso-plot, message = F, warning = F}
 plot(lasso_sc)
@@ -161,7 +169,6 @@ emplogitplot1(new_mode ~ (speechiness),
              data = spotify_test,
              ngroups = 20)
 ```
-
 
 There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
@@ -212,8 +219,6 @@ to be continued
 ## Discussion
 
 In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. Additionally, there are challenges with some of the variables in terms of their scaling. For example, the variable us_popularity_estimate mostly takes on values from 97-99. This is the case with many variables within the data. Therefore, our model does have downfalls, but it does have an interpretive aspect that is desirable. For example, there are not any sophisticated transformations on the predictors. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. Although this may not be the "best" and most statistically complete model, it is effective in providing meaningful results while simultaneously maintaining an applicative aspect.
-
-
 
 ```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
 glm_aug <- augment(glm_all_mode)
@@ -267,4 +272,3 @@ emplogitplot1(new_mode ~ valence,
              data = spotify_mode,
              ngroups = 20)
 ```
-
