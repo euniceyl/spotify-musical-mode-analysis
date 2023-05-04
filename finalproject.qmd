@@ -71,8 +71,6 @@ ggcorrplot(cor_spotify)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
 
-Source used: http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2#:\~:text=The%20easiest%20way%20to%20visualize,ggcorr()%20in%20ggally%20package
-
 Examining the correlation plot above, it appears there are variables that have a high positive correlation with each other. This causes great concern with multicollinearity as the model may be overfitted. For example,
 
 -   beat_strength is highly correlated with
@@ -139,7 +137,7 @@ y <- spotify_mode$new_mode
 x <- model.matrix(new_mode ~ us_popularity_estimate + duration + release_year + 
                   acousticness + danceability + energy + flatness + 
                   instrumentalness + key + liveness + loudness + mechanism + 
-                  organism + speechiness + tempo + time_signature + valence,
+                   speechiness + tempo + time_signature + valence,
                   data = spotify_mode, family = "binomial")
 lasso_sc <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- lasso_sc$lambda.min
@@ -147,7 +145,7 @@ lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
 
-LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest.
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale.
 
 ```{r lasso-plot, message = F, warning = F}
 plot(lasso_sc)
@@ -272,3 +270,13 @@ emplogitplot1(new_mode ~ valence,
              data = spotify_mode,
              ngroups = 20)
 ```
+
+Citations:
+
+**Spotify data:**
+
+https://www.aicrowd.com/challenges/spotify-sequential-skip-prediction-challenge/dataset_files (need to create an account and log in to access the dataset)
+
+**Referenced for completing the correlation matrix:**
+
+http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2#:\~:text=The%20easiest%20way%20to%20visualize,ggcorr()%20in%20ggally%20package
