@@ -95,7 +95,7 @@ Therefore, to prevent overfitting in our regression model, the following variabl
 
 4\) organism
 
-Note: We decided to leave in danceability and mechanism because we felt that these variables are easily understandable from an interpretable standpoint of the model.
+Note: We decided to leave in danceability and mechanism because we felt that these variables are easily understandable from a musical perspective and may be important to the model.
 
 The new regression model and corresponding correlation plot can be shown below:
 
@@ -142,6 +142,7 @@ lasso_sc <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
+
 ```
 
 LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model
@@ -154,7 +155,13 @@ not sure if this is needed or not\^
 
 ## Methodology
 
-Evaluating assumptions:
+In order to ensure our model can be interpreted in a real-world context, it is critical to check all of the assumptions for a logistic model. For logistic regression, the two most important assumptions are independence and linearity. For independence, we are checking to see if each observation in our data is independent from each other (eg: knowing about one observation does not tell us about another). On the other hand, linearity for logistic models ensures that the predictor variables generally follow a linear trend with the odds of the outcome of interest. There should not be any clear patterns or distinct trends within the data.
+
+**Independence:**
+
+the *observations* are independent from each other (careful - *not* the predictors)
+
+**Linearity:**
 
 ```{r linearity-issue, message = F, warning = F, echo = FALSE, eval = FALSE}
 
@@ -217,7 +224,11 @@ to be continued
 
 ## Discussion
 
-In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, after attempts to transform this variable, it was not effective because of underlying issues with the variable. Additionally, there are challenges with some of the variables in terms of their scaling. For example, the variable us_popularity_estimate mostly takes on values from 97-99. This is the case with many variables within the data. Therefore, our model does have downfalls, but it does have an interpretive aspect that is desirable. For example, there are not any sophisticated transformations on the predictors. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. Although this may not be the "best" and most statistically complete model, it is effective in providing meaningful results while simultaneously maintaining an applicative aspect.
+In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, attempts to transform this variable were not effective because of underlying issues with the variable. One reason this occurs is because instrumental songs cause a cluster of points near 0 (demonstrated on the empirical logit plot).
+
+Additionally, there are challenges with some of the variables in terms of their scaling and units. For example, the variable us_popularity_estimate mostly takes on values from 97-99. Each variable is different, but they generally have unique scaling.
+
+In all, our model does have downfalls, but it does have an interpretive aspect that is desirable. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. The model, even though there are issues, is not extremely sophisticated and complex for a general audience. Even though the AUC value is not as strong as desirable, it is still an informative model. Overall, our model provides insightful and meaningful results while simultaneously maintaining a real-world aspect.
 
 ## Appendix
 
