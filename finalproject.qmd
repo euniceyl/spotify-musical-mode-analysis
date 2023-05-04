@@ -112,13 +112,13 @@ The new model:
 
 ```{r newlogistic-model, message = F, warning = F}
 
-glm_all_mode_new <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
+glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
                           acousticness  + danceability  + energy + flatness + 
                           instrumentalness + key + liveness + loudness + mechanism + 
                           speechiness + tempo + time_signature + valence,
      data = spotify_mode,
      family = "binomial")
-summary(glm_all_mode_new)
+summary(glm_final)
 
 ```
 
