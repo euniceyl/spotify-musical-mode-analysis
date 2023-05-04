@@ -25,7 +25,6 @@ This data was collected from the Spotify for Developers website, as the data set
 Data source: https://www.aicrowd.com/challenges/spotify-sequential-skip-prediction-challenge/dataset_files (need to create an account and log in to access the dataset)
 
 Some of our key variables included:
-
 -   duration: length of the song in seconds
 -   release_year: year of song released (1950-2018)
 -   key: song key starting from C major (0) to B minor (11)
@@ -53,7 +52,7 @@ glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration +
                       speechiness + tempo + time_signature + valence,
      data = spotify_mode,
      family = "binomial")
-summary(glm_all_mode)
+summary(glm_all_mode)$coef
 ```
 
 As demonstrated by the regression model above, there are many predictors that are statistically significant, using the significance level of $\alpha=0.5$. However, it is critical to improve this baseline model in the following ways:
@@ -74,36 +73,18 @@ cor_spotify <- cor(spotify_cor)
 ggcorrplot(cor_spotify)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
-
 Examining the correlation plot above, it appears there are variables that have a high positive correlation with each other. This causes great concern with multicollinearity as the model may be overfitted. For example,
 
--   beat_strength is highly correlated with
-
-    -   dyn_range_mean
-
-    -   danceability
-
-    -   bounciness
-
--   mechanism is highly correlated with
-
-    -   organism
+-   beat_strength is highly correlated with, dyn_range_mean, danceability, and bounciness
+-   mechanism is highly correlated with organism
 
 Therefore, to prevent overfitting in our regression model, the following variables should be removed:
 
-1\) beat_strength
-
-2\) dyn_range_mean
-
-3\) bounciness
-
-4\) organism
-
-Note: We decided to leave in danceability and mechanism because we felt that these variables are easily understandable from a musical perspective and may be important to the model.
+beat_strength, dyn_range_mean, bounciness, organism - Note: We decided to leave in danceability and mechanism because we felt that these variables are easily understandable from a musical perspective and may be important to the model.
 
 The new regression model and corresponding correlation plot can be shown below:
 
-```{r newcorplotvars, message = F, warning = F, echo = FALSE}
+```{r newcorplotvars, message = F, warning = F, echo = FALSE, eval = FALSE}
 spotify_cor_new <- spotify_mode|>
   select(us_popularity_estimate, duration, release_year, acousticness, 
      beat_strength, danceability, energy, flatness,instrumentalness, key, 
@@ -115,7 +96,7 @@ ggcorrplot(cor_spotify_new)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
 
-It is important to acknowledge that further correlations exist, but they are not as extreme and prevalent as prior models. Therefore, we feel that it is appropriate to proceed with the revised model.
+A second , but they are not as extreme and prevalent as prior models. Therefore, we feel that it is appropriate to proceed with the revised model.
 
 The new model:
 
@@ -126,9 +107,8 @@ glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
                           speechiness + tempo + time_signature + valence,
      data = spotify_mode,
      family = "binomial")
-summary(glm_final)
+summary(glm_final)$coef
 ```
-
 Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (eg: danceability changed from a positive to negative contribution)! Additionally, the variable flatness is no longer significant in the model (at at 0.05 significance level).
 
 In addition, to removing four variables due to extremely high correlations, we felt it was also important to select variables that have the most impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
@@ -145,8 +125,7 @@ best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
-
-LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the standard logistic model instead of the LASSO for further analysis.
 
 ## Methodology
 
@@ -157,7 +136,6 @@ In order to ensure our model can be interpreted in a real-world context, it is c
 the *observations* are independent from each other (careful - *not* the predictors)
 
 **Linearity:**
-
 ```{r linearity-issue, message = F, warning = F, echo = FALSE}
 glm_aug <- augment(glm_final)
 
@@ -170,7 +148,6 @@ emplogitplot1(new_mode ~ (speechiness),
              data = spotify_test,
              ngroups = 20)
 ```
-
 There were fewer data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
 These are potential limitations of these variables that do not meet the linearity assumption. However, **since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model.** We do understand that there may be some linearity concerns when it comes to the overall view of our model.
@@ -220,7 +197,7 @@ One predictor that is most aligned with our outcome variable (major/minor scale)
 to be continued
 
 ## Discussion
-
+*********TALK ABOUT WHAT WE LEARNED!!!!!!***************
 In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, attempts to transform this variable were not effective because of underlying issues with the variable. One reason this occurs is because instrumental songs cause a cluster of points near 0 (demonstrated on the empirical logit plot).
 
 Additionally, there are challenges with some of the variables in terms of their scaling and units. For example, the variable us_popularity_estimate mostly takes on values from 97-99. Each variable is different, but they generally have unique scaling.
