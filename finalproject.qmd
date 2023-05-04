@@ -21,7 +21,7 @@ With recent features on music apps such as Spotify Wrapped gaining massive popul
 This data was collected from the Spotify for Developers website, as the data set was published to be used as part of an open data science challenge. With no null values and well-categorized variables, our data was already cleaned and ready to be used for a complete case analysis. Minor data cleaning processes that we conducted were deleting irrelevant variables such as acoustic vectors and adding a new variable "new_mode" to express major and minor modes numerically as 1 and 0. Key variables included:
 
 |                                                          |                                                             |                                                             |
-|----------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------|
+|-----------------------|------------------------|------------------------|
 | **release_year**: year of song released (1950-2018)      | **key**: song key starting from C major (0) to B minor (11) | **mode**: song mode (major or minor)                        |
 | **new_mode**: song mode numerized (1 = major, 0 = minor) | **tempo**: speed of song in beats per minute (bpm)          | **time signature**: number of quarter notes in each measure |
 
@@ -53,7 +53,7 @@ As demonstrated by the regression model above, there are many predictors that ar
 
 ```{r corplotvars, message = F, warning = F, echo = FALSE}
 spotify_cor <- spotify_mode|>
-  select(us_popularity_estimate, duration, release_year, acousticness, 
+  dplyr::select(us_popularity_estimate, duration, release_year, acousticness, 
      beat_strength, bounciness, danceability, dyn_range_mean, energy, 
      flatness,instrumentalness, key, liveness, loudness, mechanism, 
        organism, speechiness, tempo, time_signature, valence)
@@ -69,15 +69,11 @@ Examining the correlation plot above, it appears there are variables that have a
 -   beat_strength is highly correlated with, dyn_range_mean, danceability, and bounciness
 -   mechanism is highly correlated with organism
 
-Therefore, to prevent overfitting in our regression model, the following variables should be removed:
-
-beat_strength, dyn_range_mean, bounciness, organism - Note: We decided to leave in danceability and mechanism because we felt that these variables are easily understandable from a musical perspective and may be important to the model.
-
-The new regression model and corresponding correlation plot can be shown below:
+Therefore, to prevent overfitting in our regression model, the following variables should be removed - beat_strength, dyn_range_mean, bounciness, and organism. However, we decided to leave in danceability and mechanism because we felt that these variables are easily understandable from a musical perspective and may be important to the model.
 
 ```{r newcorplotvars, message = F, warning = F, echo = FALSE, eval = FALSE}
 spotify_cor_new <- spotify_mode|>
-  select(us_popularity_estimate, duration, release_year, acousticness, 
+  dplyr::select(us_popularity_estimate, duration, release_year, acousticness, 
      beat_strength, danceability, energy, flatness,instrumentalness, key, 
      liveness, loudness, mechanism, speechiness, tempo, time_signature, valence)
 
@@ -86,8 +82,6 @@ cor_spotify_new <- cor(spotify_cor_new)
 ggcorrplot(cor_spotify_new)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
-
-A second , but they are not as extreme and prevalent as prior models. Therefore, we feel that it is appropriate to proceed with the revised model.
 
 The new model:
 
@@ -101,9 +95,9 @@ glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
 summary(glm_final)$coef
 ```
 
-Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (eg: danceability changed from a positive to negative contribution)! Additionally, the variable flatness is no longer significant in the model (at at 0.05 significance level).
+Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing signs (eg: danceability changed from a positive to negative contribution)! Additionally, the variable flatness is no longer significant in the model (at at 0.05 significance level).
 
-In addition, to removing four variables due to extremely high correlations, we felt it was also important to select variables that have the most impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
+In addition to removing removing the highly correlated variables, we felt it was also important to select variables that have the most impact on the model. For example, some variables may be not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables.
 
 ```{r lasso, message = F, warning = F, echo = FALSE}
 y <- spotify_mode$new_mode
@@ -118,7 +112,7 @@ lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
 
-LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the standard logistic model instead of the LASSO for further analysis.
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the **standard logistic model** instead of the LASSO model for further analysis because of the adjusted coefficients and inclusion of an intercept.
 
 ## Methodology
 
@@ -151,7 +145,7 @@ These are potential limitations of these variables that do not meet the linearit
 glm_aug <- glm_aug |>
   mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
          pred_mode = ifelse(prob > 0.5, "Major", "Minor")) |>
-  select(.fitted, prob, pred_mode, new_mode)
+  dplyr::select(.fitted, prob, pred_mode, new_mode)
 
 table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
@@ -207,7 +201,6 @@ Following are the empirical logit plots as referenced in the methodology section
 
 ```{r linearity-check, message = F, warning = F, echo = FALSE}
 
-
 emplogitplot1(new_mode ~ us_popularity_estimate,
              data = spotify_mode,
              ngroups = 20)
@@ -258,7 +251,7 @@ emplogitplot1(new_mode ~ valence,
              ngroups = 20)
 ```
 
-Citations:
+## Citations
 
 **Spotify data:**
 
