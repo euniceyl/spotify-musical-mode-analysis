@@ -4,7 +4,7 @@ author: "Majorz"
 format: pdf
 ---
 
-```{r read-data, message = F, warning = F}
+```{r read-data, message = F, warning = F, echo = FALSE}
 library(tidyverse)
 library(tidymodels)
 library(glmnet)
@@ -36,17 +36,21 @@ Some of our key variables included:
 
 To get a gist of what our data was presenting, we fitted an initial logistic model using all variables as predictors.
 
-```{r logistic-model, message = F, warning = F}
+```{r initialeda, message = F, warning = F, echo = FALSE}
 spotify_mode <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
          new_mode = as.numeric(new_mode))
 
 spotify_mode |> drop_na(new_mode)
+```
 
-glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + release_year + acousticness + 
-     beat_strength + bounciness + danceability + dyn_range_mean + energy + 
-     flatness + instrumentalness + key + liveness + loudness + mechanism + 
-       organism + speechiness + tempo + time_signature + valence,
+```{r logisticmodel, message = F, warning = F, echo = FALSE}
+glm_all_mode <- glm(new_mode ~ us_popularity_estimate + duration + 
+                      release_year + acousticness + beat_strength + 
+                      bounciness + danceability + dyn_range_mean + 
+                      energy + flatness + instrumentalness + key + 
+                      liveness + loudness + mechanism + organism + 
+                      speechiness + tempo + time_signature + valence,
      data = spotify_mode,
      family = "binomial")
 summary(glm_all_mode)
@@ -58,7 +62,7 @@ As demonstrated by the regression model above, there are many predictors that ar
 2)  Ensure that the variables included are meaningfully contributing to the model
 3)  Optimize the model and determine if tranformations or changes are appropriate
 
-```{r corplotvars, message = F, warning = F}
+```{r corplotvars, message = F, warning = F, echo = FALSE}
 spotify_cor <- spotify_mode|>
   select(us_popularity_estimate, duration, release_year, acousticness, 
      beat_strength, bounciness, danceability, dyn_range_mean, energy, 
@@ -99,7 +103,7 @@ Note: We decided to leave in danceability and mechanism because we felt that the
 
 The new regression model and corresponding correlation plot can be shown below:
 
-```{r newcorplotvars, message = F, warning = F}
+```{r newcorplotvars, message = F, warning = F, echo = FALSE}
 spotify_cor_new <- spotify_mode|>
   select(us_popularity_estimate, duration, release_year, acousticness, 
      beat_strength, danceability, energy, flatness,instrumentalness, key, 
@@ -115,7 +119,7 @@ It is important to acknowledge that further correlations exist, but they are not
 
 The new model:
 
-```{r newlogistic-model, message = F, warning = F}
+```{r newlogistic-model, message = F, warning = F, echo = FALSE}
 glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
                           acousticness  + danceability  + energy + flatness + 
                           instrumentalness + key + liveness + loudness + mechanism + 
@@ -129,7 +133,7 @@ Removing the highly related variables were essential to our analysis as some of 
 
 In addition, to removing four variables due to extremely high correlations, we felt it was also important to select variables that have the most impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
 
-```{r lasso, message = F, warning = F}
+```{r lasso, message = F, warning = F, echo = FALSE}
 y <- spotify_mode$new_mode
 x <- model.matrix(new_mode ~ us_popularity_estimate + duration + release_year + 
                   acousticness + danceability + energy + flatness + 
@@ -144,12 +148,6 @@ lasso_final$beta
 
 LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model
 
-```{r lasso-plot, message = F, warning = F}
-plot(lasso_sc)
-```
-
-not sure if this is needed or not\^
-
 ## Methodology
 
 In order to ensure our model can be interpreted in a real-world context, it is critical to check all of the assumptions for a logistic model. For logistic regression, the two most important assumptions are independence and linearity. For independence, we are checking to see if each observation in our data is independent from each other (eg: knowing about one observation does not tell us about another). On the other hand, linearity for logistic models ensures that the predictor variables generally follow a linear trend with the odds of the outcome of interest. There should not be any clear patterns or distinct trends within the data.
@@ -160,7 +158,8 @@ the *observations* are independent from each other (careful - *not* the predicto
 
 **Linearity:**
 
-```{r linearity-issue, message = F, warning = F, echo = FALSE, eval = FALSE}
+```{r linearity-issue, message = F, warning = F, echo = FALSE}
+glm_aug <- augment(glm_final)
 
 spotify_test <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
@@ -176,8 +175,7 @@ There were fewer data points for some of the predictors because there was only s
 
 These are potential limitations of these variables that do not meet the linearity assumption. However, **since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model.** We do understand that there may be some linearity concerns when it comes to the overall view of our model.
 
-```{r prediction-probability, message = F, warning = F, eval = F}
-
+```{r prediction-probability, message = F, warning = F, echo = FALSE}
 glm_aug <- glm_aug |>
   mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
          pred_mode = ifelse(prob > 0.5, "Major", "Minor")) |>
@@ -200,7 +198,7 @@ Negative predicted value: 3279/(3279 + 2587) = 0.559
 
 This implies that \_\_\_
 
-```{r roc-curve, message = F, warning = F, eval = FALSE}
+```{r roc-curve, message = F, warning = F, echo = FALSE}
 glm_aug |>
   roc_curve(truth = as.factor(new_mode),
           prob,
@@ -235,7 +233,7 @@ In the future, we may want to explore other data sources and outcomes to underst
 
 Following are the empirical logit plots as referenced in the methodology section above.
 
-```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
+```{r linearity-check, message = F, warning = F, echo = FALSE}
 
 
 emplogitplot1(new_mode ~ us_popularity_estimate,
