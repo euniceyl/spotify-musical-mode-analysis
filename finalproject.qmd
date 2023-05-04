@@ -5,7 +5,6 @@ format: pdf
 ---
 
 ```{r read-data, message = F, warning = F}
-install.packages("ggcorrplot")
 library(tidyverse)
 library(tidymodels)
 library(glmnet)
@@ -101,7 +100,7 @@ spotify_cor_new <- spotify_mode|>
   select(us_popularity_estimate, duration, release_year, acousticness, 
      beat_strength, danceability, energy, 
      flatness,instrumentalness, key, liveness, loudness, mechanism, 
-       organism, speechiness, tempo, time_signature, valence)
+       speechiness, tempo, time_signature, valence)
 
 cor_spotify_new <- cor(spotify_cor_new)
 
@@ -116,7 +115,7 @@ The new model:
 glm_all_mode_new <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
                           acousticness  + danceability  + energy + flatness + 
                           instrumentalness + key + liveness + loudness + mechanism + 
-                          organism + speechiness + tempo + time_signature + valence,
+                          speechiness + tempo + time_signature + valence,
      data = spotify_mode,
      family = "binomial")
 summary(glm_all_mode_new)
@@ -152,61 +151,17 @@ not sure if this is needed or not\^
 
 Evaluating assumptions:
 
-```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
-glm_aug <- augment(glm_all_mode)
-par(mfrow=c(4,5))
-emplogitplot1(new_mode ~ us_popularity_estimate,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ duration,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ release_year,
-             data = spotify_mode,
-             ngroups = 5)
-emplogitplot1(new_mode ~ acousticness,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ danceability,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ energy,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ flatness,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ instrumentalness,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ key,
-             data = spotify_mode,
-             ngroups = 10)
-emplogitplot1(new_mode ~ liveness,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ loudness,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ mechanism,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ organism,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ speechiness,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ tempo,
-             data = spotify_mode,
-             ngroups = 20)
-emplogitplot1(new_mode ~ time_signature,
-             data = spotify_mode,
-             ngroups = 2)
-emplogitplot1(new_mode ~ valence,
-             data = spotify_mode,
+```{r}
+spotify_test <- spotify |>
+  mutate(new_mode = if_else(mode == "major", 1, 0), 
+         new_mode = as.numeric(new_mode),
+         speechiness_new = (speechiness)^2)
+
+emplogitplot1(new_mode ~ (speechiness),
+             data = spotify_test,
              ngroups = 20)
 ```
+
 
 There had to be less data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
@@ -257,3 +212,59 @@ to be continued
 ## Discussion
 
 In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. Additionally, there are challenges with some of the variables in terms of their scaling. For example, the variable us_popularity_estimate mostly takes on values from 97-99. This is the case with many variables within the data. Therefore, our model does have downfalls, but it does have an interpretive aspect that is desirable. For example, there are not any sophisticated transformations on the predictors. This allows the results to be more "reasonable" in terms of extrapolation and interpretation. Although this may not be the "best" and most statistically complete model, it is effective in providing meaningful results while simultaneously maintaining an applicative aspect.
+
+
+
+```{r linearity-check, message = F, warning = F, echo = FALSE, eval = FALSE}
+glm_aug <- augment(glm_all_mode)
+
+emplogitplot1(new_mode ~ us_popularity_estimate,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ duration,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ release_year,
+             data = spotify_mode,
+             ngroups = 5)
+emplogitplot1(new_mode ~ acousticness,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ danceability,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ energy,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ flatness,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ instrumentalness,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ key,
+             data = spotify_mode,
+             ngroups = 10)
+emplogitplot1(new_mode ~ liveness,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ loudness,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ mechanism,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ speechiness,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ tempo,
+             data = spotify_mode,
+             ngroups = 20)
+emplogitplot1(new_mode ~ time_signature,
+             data = spotify_mode,
+             ngroups = 2)
+emplogitplot1(new_mode ~ valence,
+             data = spotify_mode,
+             ngroups = 20)
+```
+
