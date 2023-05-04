@@ -16,22 +16,14 @@ spotify <- read_csv("data/tf_mini.csv")
 
 ## Introduction and Data
 
-With recent features on music apps such as Spotify Wrapped gaining massive popularity, understanding users' music taste for personalized recommendations and music trend analysis have become a critical challenge for streaming companies. To categorize and analyze the countless songs on these platforms, each are dissected into various musical elements ranging from duration and tempo to loudness and danceability. Using a real database of song tracks compiled and released by Spotify for data engineering purposes, we wanted to see whether common trends could be observed between different musical elements. Modes of songs, specifically, were of our interest since they determine the mood of the music --- songs in major modes sound more bright and uplifting while those in minor modes are more calm and even sadder. We wanted to explore if musical aspects such as bounciness or tempo would be correlated to the song's mode in some way, with some of our example hypotheses being that minor songs would be slower and/or less danceable but more acoustic than major songs. Hence, we set the following:
+With recent features on music apps such as Spotify Wrapped gaining massive popularity, understanding users' music taste for personalized recommendations and music trend analysis have become a critical challenge for streaming companies. To categorize and analyze the countless songs on these platforms, each are dissected into various musical elements ranging from duration and tempo to loudness and danceability. Using a real database of song tracks compiled and released by Spotify for data engineering purposes, we wanted to see whether common trends could be observed between different musical elements. Modes of songs, specifically, were of our interest since they determine the mood of the music --- songs in major modes sound more bright and uplifting while those in minor modes are more calm and even sadder. We wanted to explore if musical aspects such as bounciness or tempo would be correlated to the song's mode in some way, with some of our example hypotheses being that minor songs would be slower and/or less danceable but more acoustic than major songs. Hence, we set the following: *How do different musical elements affect whether a song is in major or minor mode?*
 
-Research question: How do different musical elements affect whether a song is in major or minor mode?
+This data was collected from the Spotify for Developers website, as the data set was published to be used as part of an open data science challenge. With no null values and well-categorized variables, our data was already cleaned and ready to be used for a complete case analysis. Minor data cleaning processes that we conducted were deleting irrelevant variables such as acoustic vectors and adding a new variable "new_mode" to express major and minor modes numerically as 1 and 0. Key variables included:
 
-This data was collected from the Spotify for Developers website, as the data set was published to be used as part of an open data science challenge. With no null values and well-categorized variables, our data was already cleaned and ready to be used for a complete case analysis. Minor data cleaning processes that we conducted were deleting irrelevant variables such as acoustic vectors and adding a new variable "new_mode" to express major and minor modes numerically as 1 and 0.
-
-Data source: https://www.aicrowd.com/challenges/spotify-sequential-skip-prediction-challenge/dataset_files (need to create an account and log in to access the dataset)
-
-Some of our key variables included:
--   duration: length of the song in seconds
--   release_year: year of song released (1950-2018)
--   key: song key starting from C major (0) to B minor (11)
--   mode: song mode (major or minor)
--   new_mode: song mode numerized (1 = major, 0 = minor)
--   tempo: speed of song in beats per minute (bpm)
--   time signature: number of quarter notes in each measure
+|                                                          |                                                             |                                                             |
+|----------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------|
+| **release_year**: year of song released (1950-2018)      | **key**: song key starting from C major (0) to B minor (11) | **mode**: song mode (major or minor)                        |
+| **new_mode**: song mode numerized (1 = major, 0 = minor) | **tempo**: speed of song in beats per minute (bpm)          | **time signature**: number of quarter notes in each measure |
 
 To get a gist of what our data was presenting, we fitted an initial logistic model using all variables as predictors.
 
@@ -39,8 +31,6 @@ To get a gist of what our data was presenting, we fitted an initial logistic mod
 spotify_mode <- spotify |>
   mutate(new_mode = if_else(mode == "major", 1, 0), 
          new_mode = as.numeric(new_mode))
-
-spotify_mode |> drop_na(new_mode)
 ```
 
 ```{r logisticmodel, message = F, warning = F, echo = FALSE}
@@ -73,6 +63,7 @@ cor_spotify <- cor(spotify_cor)
 ggcorrplot(cor_spotify)+
   labs(title = "Corrleation of Spotify Data Variables")
 ```
+
 Examining the correlation plot above, it appears there are variables that have a high positive correlation with each other. This causes great concern with multicollinearity as the model may be overfitted. For example,
 
 -   beat_strength is highly correlated with, dyn_range_mean, danceability, and bounciness
@@ -109,6 +100,7 @@ glm_final <- glm(new_mode ~ us_popularity_estimate + duration + release_year +
      family = "binomial")
 summary(glm_final)$coef
 ```
+
 Removing the highly related variables were essential to our analysis as some of the coefficients changed drastically, including changing direction (eg: danceability changed from a positive to negative contribution)! Additionally, the variable flatness is no longer significant in the model (at at 0.05 significance level).
 
 In addition, to removing four variables due to extremely high correlations, we felt it was also important to select variables that have the most impact on the model. For example, some variables may be replicated or not meaningful by nature to the outcome of interest; therefore, removal is essential. In this analysis, we decided to use a LASSO model to select variables that are essential to the model.
@@ -125,6 +117,7 @@ best_lambda <- lasso_sc$lambda.min
 lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
+
 LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the standard logistic model instead of the LASSO for further analysis.
 
 ## Methodology
@@ -136,6 +129,7 @@ In order to ensure our model can be interpreted in a real-world context, it is c
 the *observations* are independent from each other (careful - *not* the predictors)
 
 **Linearity:**
+
 ```{r linearity-issue, message = F, warning = F, echo = FALSE}
 glm_aug <- augment(glm_final)
 
@@ -148,6 +142,7 @@ emplogitplot1(new_mode ~ (speechiness),
              data = spotify_test,
              ngroups = 20)
 ```
+
 There were fewer data points for some of the predictors because there was only so many different values and enough of them to be able to get the empirical logits. For example, with key there is only 12 unique values, but not all of them had enough values to be calculated, so we did 10 groups. I eliminated the titles to make the plots more clear and because they were repetitive. In summary, we concluded that linearity is met for time signature, tempo, mechanism, loudness, liveness, instrumentalness, key, release year and popularity because there is no major pattern in empirical logits. Linearity was not met for valence, speechiness, organism, flatness, energy, danceability, acousticness and duration because they showed patterns in empirical logits.
 
 These are potential limitations of these variables that do not meet the linearity assumption. However, **since solving for linearity is sort of outside the scope of this course, we decided to leave the variables in the model.** We do understand that there may be some linearity concerns when it comes to the overall view of our model.
@@ -197,8 +192,8 @@ One predictor that is most aligned with our outcome variable (major/minor scale)
 to be continued
 
 ## Discussion
-*********TALK ABOUT WHAT WE LEARNED!!!!!!***************
-In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, attempts to transform this variable were not effective because of underlying issues with the variable. One reason this occurs is because instrumental songs cause a cluster of points near 0 (demonstrated on the empirical logit plot).
+
+\*\*\*\*\*\*\*\*\*TALK ABOUT WHAT WE LEARNED!!!!!!\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* In conclusion, this model has benefits and shortfalls. Primarily, it is clear that there are variables that do not meet the linearity assumption and create difficulties for interpretation. For example, the variable speechiness, follows a distinct pattern. However, attempts to transform this variable were not effective because of underlying issues with the variable. One reason this occurs is because instrumental songs cause a cluster of points near 0 (demonstrated on the empirical logit plot).
 
 Additionally, there are challenges with some of the variables in terms of their scaling and units. For example, the variable us_popularity_estimate mostly takes on values from 97-99. Each variable is different, but they generally have unique scaling.
 
