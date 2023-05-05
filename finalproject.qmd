@@ -108,7 +108,7 @@ In order to ensure our model can be interpreted in a real-world context, it is c
 
 **Independence:**
 
-The independence assumption is accepted because the observations are independent from each other. Knowing something about one song doesn't impact what we know about another song. The data comes from 130 million users which is an extremely large amount. While the songs that a singular person listens to may be similar, we don't think that violates our independence here because there is so many different songs selected from these listeners. 
+The independence assumption is accepted because the observations are independent from each other. Knowing something about one song doesn't impact what we know about another song. Additionally, the data comes from 130 million users which is an extremely large amount. While the songs that a singular person listens to may be similar, we don't think that violates our independence here because there is so many different songs selected from these listeners.
 
 **Linearity:**
 
@@ -150,7 +150,7 @@ Positive predictive value: 30110/(30110 + 14992) = 0.667
 
 Negative predictive value: 3157/(3157 + 2445) = 0.564
 
-Immediately, it is clear that there is a very high sensitivity and low specificity. This means that the model (at the 0.5 threshold) may determine that a song is in a major key while in reality it doesn't. On the flip side, it also means that there are minimal songs that are considered to be in a minor key when in fact it is actually in a major key. Either way, there is a clear imbalance. Additionally, we can see that the positive and negative predictive values are not extremely high, meaning that it is fairly likely that if major/minor key is in fact the case.
+Immediately, it is clear that there is a very high sensitivity and low specificity. This means that the model (at the 0.5 threshold) may determine that a song is in a major key while in reality it doesn't. On the flip side, it also means that there are minimal songs that are considered to be in a minor key when in fact it is actually in a major key. Either way, there is a clear imbalance. Additionally, we can see that the positive and negative predictive values are not extremely high, meaning that it is fairly likely that if it is considered major/minor key, that it is truly in a major/minor key. These probabilities are not as high as expected, but they indicate that it does have downfalls.
 
 ```{r roc-curve, message = F, warning = F, echo = FALSE, fig.width=3, fig.height=3}
 glm_aug |>
