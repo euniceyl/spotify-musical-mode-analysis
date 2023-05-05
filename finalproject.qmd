@@ -169,9 +169,7 @@ The value of the area under the curve of the ROC curve is 0.64. Although it is g
 
 ## Results
 
-One predictor that is most aligned with our outcome variable (major/minor scale) is key because key has changes in whole numbers while many of the other predictors are within tenths of differences of each other amongst observations. Holding all other predictors constant, for every one (unit) increase in key, we expect the log-odds of a song being major rather than minor to increase by approximately 0.0931. So, when holding all other predictors constant, we for every one number increase in key (find what this means), the odds of the patient getting any infection is predicted to be multiplied by $e^{0.0931}$ = 1.0976. For an example, while holding all other predictors constant, the relative odds of a song being major rather than minor comparing a song with key 10 vs a song with key 2 is $e^{8*0.0931}$ is 2.106.
-
-to be continued
+One predictor that we were interested along with our outcome variable (major/minor scale) is popularity. It is a bit tough to look at some of our variables because a lot of them are scaled by tenths increases rather than whole numbers. Popularity however ranges from about 90-100 so it includes some whole number changes. When holding all other predictors constant, we for every one number increase in popularity, the odds of the song being major is predicted to be multiplied by $e^{-0.01085}$ = 0.989. While we were interested in looking at popularity, the p-value is not significant. Another possible interesting predictor is danceability which is essentially looking at the song's ability to be danced to. When holding all other predictors constant, we for every one number increase in danceability, the odds of the song being major is predicted to be multiplied by $e^{-0.542}$ = 0.582. This one is harder to interpret because danceability ranges from 0 to 1. This is one limitation of our interpretations because many of the scales are not with whole numbers.
 
 ## Discussion
 
