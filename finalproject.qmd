@@ -100,7 +100,7 @@ lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
 
-LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the **standard logistic model** instead of the LASSO model for further analysis because LASSO adjusts coefficients (due to the intercetp) and for ease of interpretation.
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the **standard logistic model** instead of the LASSO model for further analysis because LASSO adjusts coefficients (due to the intercept) and for ease of interpretation.
 
 ## Methodology
 
