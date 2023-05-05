@@ -100,7 +100,7 @@ lasso_final <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 lasso_final$beta
 ```
 
-LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the **standard logistic model** instead of the LASSO model for further analysis because of the adjusted coefficients and inclusion of an intercept.
+LASSO kept all of the predictors, demonstrating that the predictor variables are meaningfully contributing to our outcome of interest of whether the song is on a major/minor scale. It is important to note that LASSO does not include an intercept, as the model is centered. Since all variables are retained in the LASSO model, we decided to use the **standard logistic model** instead of the LASSO model for further analysis because LASSO adjusts coefficients (due to the intercetp) and for ease of interpretation.
 
 ## Methodology
 
@@ -138,19 +138,19 @@ glm_aug <- glm_aug |>
 table(glm_aug$pred_mode, glm_aug$new_mode)
 ```
 
-Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values:
+Using our logistic regression model as a classifier for any infection by using a threshold of 0.5 predicted probability, we are able to calculate the following values. These allow us to judge how well the outcome "classifier" does in terms of the model.
 
-Prevalence:
+Prevalence: (30110+2445)/(30110+2445+14992+3157) = 0.642
 
-Sensitivity: 29968/(29968 + 2587) = 0.921
+Sensitivity: 30110/(30110 + 2445) = 0.925
 
-Specificity: 3279/(3279 + 14870) = 0.181
+Specificity: 3157/(3157 + 14992) = 0.174
 
-Positive predicted value: 29968/(29968 + 14870) = 0.669
+Positive predictive value: 30110/(30110 + 14992) = 0.667
 
-Negative predicted value: 3279/(3279 + 2587) = 0.559
+Negative predictive value: 3157/(3157 + 2445) = 0.564
 
-This implies that \_\_\_
+Immediately, it is clear that there is a very high sensitivity and low specificity. This means that the model (at the 0.5 threshold) may determine that a song is in a major key while in reality it doesn't. On the flip side, it also means that there are minimal songs that are considered to be in a minor key when in fact it is actually in a major key. Either way, there is a clear imbalance. Additionally, we can see that the positive and negative predictive values are not extremely high, meaning that it is fairly likely that if major/minor key is in fact the case.
 
 ```{r roc-curve, message = F, warning = F, echo = FALSE, fig.width=3, fig.height=3}
 glm_aug |>
