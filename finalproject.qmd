@@ -108,7 +108,7 @@ In order to ensure our model can be interpreted in a real-world context, it is c
 
 **Independence:**
 
-The independence assumption is accepted because the observations are independent from each other. No one song is dependent on another because each song is separate from one another. The data comes from 130 million users which is an extremely large amount. While the songs that a singular person listens to may be similar, we don't think that violates our independence here because there is so many different songs selected from these listeners. 
+The independence assumption is accepted because the observations are independent from each other. Knowing something about one song doesn't impact what we know about another song. The data comes from 130 million users which is an extremely large amount. While the songs that a singular person listens to may be similar, we don't think that violates our independence here because there is so many different songs selected from these listeners. 
 
 **Linearity:**
 
