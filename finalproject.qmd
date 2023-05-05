@@ -112,7 +112,7 @@ The independence assumption is accepted because the observations are independent
 
 **Linearity:**
 
-```{r linearity-issue, message = F, warning = F, echo = FALSE}
+```{r linearity-issue, message = F, warning = F, echo = FALSE, fig.width=3, fig.height=3}
 glm_aug <- augment(glm_final)
 
 spotify_test <- spotify |>
